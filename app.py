@@ -63,7 +63,7 @@ def goto_details(tmdb_id: int):
 # =============================
 # API HELPERS
 # =============================
-@st.cache_data(ttl=30, show_spinner=False)  # short cache for autocomplete
+@st.cache_data(ttl=3600, show_spinner=False)  # short cache for autocomplete
 def api_get_json(path: str, params: dict | None = None):
     try:
         r = requests.get(f"{API_BASE}{path}", params=params, timeout=25)
@@ -209,10 +209,10 @@ with st.sidebar:
     st.markdown("---")
     st.markdown("### 🏠 Home Feed (only home)")
     home_category = st.selectbox(
-        "Category",
-        ["trending", "popular", "top_rated", "now_playing", "upcoming"],
-        index=0,
-    )
+    "Category",
+    ["popular", "top_rated", "now_playing", "upcoming"],
+    index=0,
+)
     grid_cols = st.slider("Grid columns", 4, 8, 6)
 
 # =============================
