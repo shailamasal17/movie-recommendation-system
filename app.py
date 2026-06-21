@@ -338,47 +338,56 @@ elif st.session_state.view == "details":
     st.markdown("### ✅ Recommendations")
 
     # Recommendations (TF-IDF + Genre) via your bundle endpoint
-    title = (data.get("title") or "").strip()
-    if title:
-        bundle, err2 = api_get_json(
-            "/movie/search",
-            params={"query": title, "tfidf_top_n": 12, "genre_limit": 12},
+    # Recommendations (TF-IDF + Genre) via your bundle endpoint
+title = (data.get("title") or "").strip()
+
+if title:
+    bundle, err2 = api_get_json(
+        "/movie/search",
+        params={"query": title, "tfidf_top_n": 12, "genre_limit": 12},
+    )
+
+    if not err2 and bundle:
+        st.markdown("#### 🔎 Similar Movies (TF-IDF)")
+
+        tfidf_cards = to_cards_from_tfidf_items(
+            bundle.get("tfidf_recommendations")
         )
 
-        if not err2 and bundle:
-            st.markdown("#### 🔎 Similar Movies (TF-IDF)")
-
-tfidf_cards = to_cards_from_tfidf_items(
-    bundle.get("tfidf_recommendations")
-)
-
-if tfidf_cards:
-    poster_grid(
-        tfidf_cards,
-        cols=grid_cols,
-        key_prefix="details_tfidf",
-    )
-else:
-    st.info(
-        "⚠️ TF-IDF recommendations are not available for this movie. Showing genre-based recommendations instead."
-    )
-
-            st.markdown("#### 🎭 More Like This (Genre)")
+        if tfidf_cards:
             poster_grid(
-                bundle.get("genre_recommendations", []),
+                tfidf_cards,
                 cols=grid_cols,
-                key_prefix="details_genre",
+                key_prefix="details_tfidf",
             )
         else:
-            st.info("Showing Genre recommendations (fallback).")
-            genre_only, err3 = api_get_json(
-                "/recommend/genre", params={"tmdb_id": tmdb_id, "limit": 18}
+            st.info(
+                "⚠️ TF-IDF recommendations are not available for this movie."
             )
-            if not err3 and genre_only:
-                poster_grid(
-                    genre_only, cols=grid_cols, key_prefix="details_genre_fallback"
-                )
-            else:
-                st.warning("No recommendations available right now.")
+
+        st.markdown("#### 🎭 More Like This (Genre)")
+        poster_grid(
+            bundle.get("genre_recommendations", []),
+            cols=grid_cols,
+            key_prefix="details_genre",
+        )
+
     else:
-        st.warning("No title available to compute recommendations.")
+        st.info("Showing Genre recommendations (fallback).")
+
+        genre_only, err3 = api_get_json(
+            "/recommend/genre",
+            params={"tmdb_id": tmdb_id, "limit": 18},
+        )
+
+        if not err3 and genre_only:
+            poster_grid(
+                genre_only,
+                cols=grid_cols,
+                key_prefix="details_genre_fallback",
+            )
+        else:
+            st.warning("No recommendations available right now.")
+
+else:
+    st.warning("No title available to compute recommendations.")
