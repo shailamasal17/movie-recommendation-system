@@ -380,13 +380,13 @@ elif st.session_state.view == "details":
                 params={"tmdb_id": tmdb_id, "limit": 18},
             )
 
-        if not err3 and genre_only:
+            if not err3 and genre_only:
                 poster_grid(
                     genre_only,
                     cols=grid_cols,
                     key_prefix="details_genre_fallback",
                 )
-        else:
+            else:
                 st.warning("No recommendations available right now.")
 
     else:
