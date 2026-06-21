@@ -107,17 +107,19 @@ def make_img_url(path: Optional[str]) -> Optional[str]:
 
 
 async def tmdb_get(path: str, params: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    Safe TMDB GET:
-    - Network errors -> 502
-    - TMDB API errors -> 502 with detail
-    """
+
+    cache_key = f"{path}_{str(params)}"
+
+    if cache_key in tmdb_cache:
+        return tmdb_cache[cache_key]
+
     q = dict(params)
     q["api_key"] = TMDB_API_KEY
 
     try:
         async with httpx.AsyncClient(timeout=20) as client:
             r = await client.get(f"{TMDB_BASE}{path}", params=q)
+
     except httpx.RequestError as e:
         raise HTTPException(
             status_code=502,
@@ -126,8 +128,15 @@ async def tmdb_get(path: str, params: Dict[str, Any]) -> Dict[str, Any]:
 
     if r.status_code != 200:
         raise HTTPException(
-            status_code=502, detail=f"TMDB error {r.status_code}: {r.text}"
+            status_code=502,
+            detail=f"TMDB error {r.status_code}: {r.text}"
         )
+
+    data = r.json()
+
+    tmdb_cache[cache_key] = data
+
+    return data
 
     return r.json()
 
@@ -410,8 +419,8 @@ async def recommend_tfidf(
 @app.get("/movie/search", response_model=SearchBundleResponse)
 async def search_bundle(
     query: str = Query(..., min_length=1),
-    tfidf_top_n: int = Query(12, ge=1, le=30),
-    genre_limit: int = Query(12, ge=1, le=30),
+    tfidf_top_n: int = Query(5, ge=1, le=10),
+    genre_limit: int = Query(6, ge=1, le=10),
 ):
     """
     This endpoint is for when you have a selected movie and want:

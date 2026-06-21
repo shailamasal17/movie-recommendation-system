@@ -270,7 +270,7 @@ if st.session_state.view == "home":
     st.markdown(f"### 🏠 Home — {home_category.replace('_',' ').title()}")
 
     home_cards, err = api_get_json(
-        "/home", params={"category": home_category, "limit": 24}
+        "/home", params={"category": home_category, "limit": 8}
     )
     if err or not home_cards:
         st.error(f"Home feed failed: {err or 'Unknown error'}")
@@ -344,7 +344,7 @@ title = (data.get("title") or "").strip()
 if title:
     bundle, err2 = api_get_json(
         "/movie/search",
-        params={"query": title, "tfidf_top_n": 12, "genre_limit": 12},
+        params={"query": title, "tfidf_top_n": 5, "genre_limit": 6},
     )
 
     if not err2 and bundle:
